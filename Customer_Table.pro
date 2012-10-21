@@ -11,14 +11,18 @@ TEMPLATE = app
 QT += sql
 
 SOURCES += main.cpp\
-        custwindow.cpp
+        custwindow.cpp \
+    logindiag.cpp \
+    chgpwd.cpp
 
-HEADERS  += custwindow.h
+HEADERS  += custwindow.h \
+    logindiag.h \
+    chgpwd.h
 
-FORMS    += custwindow.ui
+FORMS    += custwindow.ui \
+    logindiag.ui \
+    chgpwd.ui
 
-OTHER_FILES += \
-    images/logo.png
+OTHER_FILES +=
 
-RESOURCES += \
-    wuzhoumag.qrc
+RESOURCES +=
