@@ -68,13 +68,13 @@ void LoginDiag::loginClicked()
 QSqlError LoginDiag::contDB()
 {
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("customer.db");
-    if (!QFile::exists("customer.db"))
+    db.setDatabaseName("customer.dat");
+    if (!QFile::exists("customer.dat"))
     {
         QMessageBox::critical(this, tr("错误"),
                     tr("数据库不存在！") );
 
-        return QSqlError("QSQLITE","customer.db",QSqlError::UnknownError,-1);
+        return QSqlError("QSQLITE","customer.dat",QSqlError::UnknownError,-1);
     }
     if (!db.open())
     {

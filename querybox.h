@@ -10,7 +10,7 @@ class QueryBox : public QGroupBox
 {
     Q_OBJECT
 public:
-    explicit QueryBox(QGroupBox *parent = 0);
+    explicit QueryBox(QWidget *parent = 0);
     virtual void keyPressEvent(QKeyEvent *event);
 signals:
     void search();

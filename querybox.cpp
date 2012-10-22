@@ -1,9 +1,8 @@
 #include "querybox.h"
 
-QueryBox::QueryBox(QGroupBox *parent) :
+QueryBox::QueryBox(QWidget *parent) :
     QGroupBox(parent)
 {
-
 }
 
 void QueryBox::keyPressEvent(QKeyEvent *event)
