@@ -115,6 +115,8 @@ CustWindow::CustWindow(QString usrName, QString password, QWidget *parent):
     ui->custTable->setColumnWidth(custMod->fieldIndex("unit_addr"),120);
     ui->custTable->setColumnWidth(custMod->fieldIndex("home_addr"),200);
     ui->custTable->setCurrentIndex(custMod->index (0, 0));
+    QObject::connect(this->ui->queryBox, SIGNAL(search()),
+                     this, SLOT(query_by_enter()));
     //updateActions();
 }
 
@@ -127,14 +129,13 @@ void CustWindow::showError(const QSqlError &err)
 void CustWindow::queryTable(bool toInsert)
 {
     //QMessageBox::information(this, tr("alert"),tr("alert"));
-
     QString queryStr("1=1 ");
     if(!toInsert)
     {
         if (ui->genCombo->currentIndex())
         {
             //custMod->setFilter(tr("AND gender=%1").arg(ui->genCombo->currentIndex() - 1));
-            queryStr = queryStr + tr("AND gender=%1").arg(ui->genCombo->currentIndex() - 1);
+            queryStr = queryStr + tr("AND gender=%1").arg(ui->genCombo->currentIndex());
         }
         else
         {
@@ -206,6 +207,11 @@ void CustWindow::changePassword()
     chgPwdDiag->clearText();
     chgPwdDiag->show();
     chgPwdDiag->exec();
+}
+
+void CustWindow::query_by_enter()
+{
+    ui->queryButton->animateClick();
 }
 
 void CustWindow::insertRow()

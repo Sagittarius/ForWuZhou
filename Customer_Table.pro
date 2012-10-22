@@ -13,11 +13,13 @@ QT += sql
 SOURCES += main.cpp\
         custwindow.cpp \
     logindiag.cpp \
-    chgpwd.cpp
+    chgpwd.cpp \
+    querybox.cpp
 
 HEADERS  += custwindow.h \
     logindiag.h \
-    chgpwd.h
+    chgpwd.h \
+    querybox.h
 
 FORMS    += custwindow.ui \
     logindiag.ui \

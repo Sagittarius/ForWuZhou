@@ -20,6 +20,7 @@ public:
     void insertRow();
     void deleteRow();
     void updateActions();
+    void queryTable(bool toInsert);
     virtual ~CustWindow();
     
 private:
@@ -33,7 +34,6 @@ private:
     ChgPwd *chgPwdDiag;
 
 public slots:
-    void queryTable(bool toInsert);
     void changePassword();
     void on_insertRowAction_triggered()
     {
@@ -50,6 +50,9 @@ public slots:
     {
         queryTable(false);
     }
+
+    void query_by_enter();
+
     void about();
 
 signals:
