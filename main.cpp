@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
         fileMenu->addSeparator();
         fileMenu->addAction(QObject::tr("&删除"), &win, SLOT(on_deleteRowAction_triggered()));
         fileMenu->addSeparator();
+        fileMenu->addAction(QObject::tr("&复制行"), &win, SLOT(on_copyRowsAction_triggered()));
+        fileMenu->addSeparator();
         fileMenu->addAction(QObject::tr("&更改密码"), &win, SLOT(changePassword()));
         fileMenu->addSeparator();
         fileMenu->addAction(QObject::tr("&退出"), &app, SLOT(quit()));

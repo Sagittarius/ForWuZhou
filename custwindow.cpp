@@ -11,6 +11,7 @@ CustWindow::CustWindow(QString usrName, QString password, QWidget *parent):
     chgPwdDiag = new ChgPwd(usr,pwd,this);
     ui->custTable->addAction(ui->insertRowAction);
     ui->custTable->addAction(ui->deleteRowAction);
+    ui->custTable->addAction(ui->copyRowsAction);
 
     // Create the data custMod
     custMod = new QSqlRelationalTableModel(ui->custTable);
@@ -231,7 +232,7 @@ void CustWindow::insertRow()
     if (custMod->submitAll())
     {
         custMod->database().commit();
-        emit statusMessage(tr("插入成功"));
+        //emit statusMessage(tr("插入成功"));
     }
     else
     {
@@ -252,7 +253,7 @@ void CustWindow::deleteRow()
     QModelIndexList currentSelection = ui->custTable->selectionModel()->selectedIndexes();
     if (currentSelection.count() < 1)
     {
-        QMessageBox::information(this,tr("提醒"),tr("请选择要删除的行"));
+        QMessageBox::information(this,tr("提示"),tr("请选择要删除的行"));
         return;
     }
     for (int i = 0; i < currentSelection.count(); ++i) {
@@ -275,6 +276,60 @@ void CustWindow::deleteRow()
     }
     custMod->setEditStrategy(QSqlTableModel::OnFieldChange);
     //updateActions();
+}
+
+void CustWindow::copyRows()
+{
+    QModelIndexList indexes = ui->custTable->selectionModel()->selectedIndexes();
+    if(indexes.size() < 1)
+    {
+        QMessageBox::information(this,tr("提示"),tr("请选中要复制的行"));
+        return;
+    }
+    // QModelIndex::operator < sorts first by row, then by column.
+    // this is what we need
+    qSort(indexes.begin(), indexes.end());
+    // You need a pair of indexes to find the row changes
+    QModelIndex previous = indexes.first();
+    indexes.removeFirst();
+    QString selected_text;
+    QModelIndex current;
+    Q_FOREACH(current, indexes)
+    {
+        if ( current.column() == custMod->fieldIndex("usr_id")
+            || current.column() == custMod->fieldIndex("visit_rec")
+            || current.column() == custMod->fieldIndex("main_rec")
+            || current.column() == custMod->fieldIndex("pres_rec")
+            || current.column() == custMod->fieldIndex("area")
+            || current.column() == custMod->fieldIndex("position")
+            || current.column() == custMod->fieldIndex("category")
+            || current.column() == custMod->fieldIndex("main_lev")
+            || current.column() == custMod->fieldIndex("main_pep") )
+        {
+            continue;
+        }
+
+        // If you are at the start of the row the row number of the previous index
+        // isn't the same.  Text is followed by a row separator, which is a newline.
+        if (current.row() != previous.row())
+        {
+          selected_text.append(QLatin1Char('\n'));
+        }
+        // Otherwise it's the same row and it's not the first cell,
+        // so append a column separator, which is a tab.
+        else if (indexes.indexOf(current))
+        {
+          selected_text.append(QLatin1Char('\t'));
+        }
+        QString text = custMod->data(current).toString();
+        // At this point `text` contains the text in one cell
+        selected_text.append(text);
+        previous = current;
+    }
+
+    // add last element
+    selected_text.append(QLatin1Char('\n'));
+    qApp->clipboard()->setText(selected_text);
 }
 
 void CustWindow::updateActions()

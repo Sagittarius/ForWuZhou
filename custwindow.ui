@@ -350,6 +350,14 @@
     <string>删除该行</string>
    </property>
   </action>
+  <action name="copyRowsAction">
+   <property name="text">
+    <string>&amp;复制行</string>
+   </property>
+   <property name="toolTip">
+    <string>拷贝行所有单元格</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

@@ -19,6 +19,7 @@ public:
     explicit CustWindow(QString usrName,QString password, QWidget *parent = 0);
     void insertRow();
     void deleteRow();
+    void copyRows();
     void updateActions();
     void queryTable(bool toInsert);
     virtual ~CustWindow();
@@ -44,6 +45,11 @@ public slots:
     void on_deleteRowAction_triggered()
     {
         deleteRow();
+    }
+
+    void on_copyRowsAction_triggered()
+    {
+        copyRows();
     }
 
     void on_queryButton_clicked()
