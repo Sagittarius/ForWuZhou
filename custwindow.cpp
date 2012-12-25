@@ -6,9 +6,9 @@ CustWindow::CustWindow(QString usrName, QString password, QWidget *parent):
     ui(new Ui::CustWindow)
 {
     ui->setupUi(this);
-    usr = usrName;
-    pwd = password;
-    chgPwdDiag = new ChgPwd(usr,pwd,this);
+    this->usr = usrName;
+    this->pwd = password;
+    this->chgPwdDiag = new ChgPwd(usr,pwd,this);
     ui->custTable->addAction(ui->insertRowAction);
     ui->custTable->addAction(ui->deleteRowAction);
     ui->custTable->addAction(ui->copyRowsAction);
@@ -17,7 +17,7 @@ CustWindow::CustWindow(QString usrName, QString password, QWidget *parent):
     custMod = new QSqlRelationalTableModel(ui->custTable);
     custMod->setEditStrategy(QSqlTableModel::OnFieldChange);
     custMod->setTable("cust_table");
-
+    custMod->setSort(0,Qt::DescendingOrder);
     // Remember the indexes of the columns
     areaIdx = custMod->fieldIndex("area_name");
     cateIdx = custMod->fieldIndex("cate_name");
@@ -73,6 +73,20 @@ CustWindow::CustWindow(QString usrName, QString password, QWidget *parent):
         return;
     }
 
+    while(custMod->canFetchMore())
+    {
+        custMod->fetchMore();
+    }
+
+    if (custMod->index(0,0).isValid())
+    {
+        this->curMaxUsrId = custMod->data(custMod->index(0,0)).toInt();
+    }
+    else
+    {
+        this->curMaxUsrId = 0;
+    }
+
     // Set the custMod and hide the ID column
     ui->custTable->setModel(custMod);
     ui->custTable->setItemDelegate(new QSqlRelationalDelegate(ui->custTable));
@@ -118,6 +132,8 @@ CustWindow::CustWindow(QString usrName, QString password, QWidget *parent):
     ui->custTable->setCurrentIndex(custMod->index (0, 0));
     QObject::connect(this->ui->queryBox, SIGNAL(search()),
                      this, SLOT(query_by_enter()));
+    //QObject::connect(this->ui->custTable->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)),
+    //        this, SLOT(currentChanged()));
     //updateActions();
 }
 
@@ -194,10 +210,19 @@ void CustWindow::queryTable(bool toInsert)
 
     if(!toInsert)
     {
+        //QSqlQuery query;
+        //query.exec("select count(*) as count from cust_table");
+        //query.first();
         if (custMod->lastError().type() != QSqlError::NoError)
             emit statusMessage(tr("查询失败：") + custMod->lastError().text());
         else if (custMod->query().isSelect())
+        {
+            while(custMod->canFetchMore())
+            {
+                custMod->fetchMore();
+            }
             emit statusMessage(tr("查询成功，共%1条记录").arg(custMod->rowCount()));
+        }
     }
     custMod->setEditStrategy(QSqlTableModel::OnFieldChange);
     //updateActions();
@@ -217,33 +242,55 @@ void CustWindow::query_by_enter()
 
 void CustWindow::insertRow()
 {
-    custMod->setEditStrategy(QSqlTableModel::OnFieldChange);
-    int rowNum = custMod->rowCount();
-    int maxUsrId = 0;
-    if (rowNum)
+    custMod->setEditStrategy(QSqlTableModel::OnManualSubmit);
+
+    if (!custMod->insertRow(0))
     {
-        maxUsrId = custMod->data(custMod->index(rowNum - 1,0)).toInt();
+        custMod->database().rollback();
+        showError(custMod->lastError());
+        emit statusMessage(tr("插入失败：追加新行失败") + custMod->lastError().text());
+        custMod->revertAll();
+        return;
+    }
+    custMod->setData(custMod->index(0, 0),this->curMaxUsrId + 1);
+    custMod->setData(custMod->index(0, 2),0);
+    if (!custMod->database().transaction())
+    {
+        showError(custMod->lastError());
+        emit statusMessage(tr("开启事务失败：") + custMod->lastError().text());
+        return;
     }
 
-    custMod->database().transaction();
-    custMod->insertRow(rowNum);
-    custMod->setData(custMod->index(rowNum, 0),maxUsrId + 1);
-    custMod->setData(custMod->index(rowNum, 2),0);
     if (custMod->submitAll())
     {
-        custMod->database().commit();
-        //emit statusMessage(tr("插入成功"));
+        if (custMod->database().commit())
+        {
+            this->curMaxUsrId++;
+            emit statusMessage(tr("插入成功"));
+        }
+        else
+        {
+            custMod->database().rollback();
+            showError(custMod->lastError());
+            emit statusMessage(tr("提交数据库失败：") + custMod->lastError().text());
+            custMod->revertAll();
+            return;
+        }
     }
     else
     {
         custMod->database().rollback();
         showError(custMod->lastError());
-        emit statusMessage(tr("插入失败：") + custMod->lastError().text());
+        emit statusMessage(tr("数据库错误：") + custMod->lastError().text());
+        custMod->revertAll();
         return;
     }
-    QModelIndex insertedIndex = custMod->index(rowNum,1);
+    QModelIndex insertedIndex;
+
+    insertedIndex =  custMod->index(0,1);
     ui->custTable->setCurrentIndex(insertedIndex);
     ui->custTable->edit(insertedIndex);
+    custMod->setEditStrategy(QSqlTableModel::OnFieldChange);
 }
 
 void CustWindow::deleteRow()
@@ -272,6 +319,7 @@ void CustWindow::deleteRow()
         custMod->database().rollback();
         showError(custMod->lastError());
         emit statusMessage(tr("删除失败：") + custMod->lastError().text());
+        custMod->revertAll();
         return;
     }
     custMod->setEditStrategy(QSqlTableModel::OnFieldChange);
@@ -349,10 +397,21 @@ void CustWindow::about()
     QMessageBox::about(this, tr("关于"), tr("版权 2012 Vincent® 保留所有权利"));
 }
 
+void CustWindow::currentChanged()
+{
+    while(custMod->canFetchMore())
+    {
+        custMod->fetchMore();
+    }
+    int rowNum = custMod->rowCount();
+    ui->custTable->scrollTo(custMod->index(rowNum,1));
+}
+
 CustWindow::~CustWindow()
 {
     delete ui;
     delete custMod;
     delete chgPwdDiag;
 }
+
 

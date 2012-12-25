@@ -18,9 +18,9 @@ public:
     explicit LoginDiag(QWidget *parent = 0);
     void loginClicked();
     QSqlError contDB();
+    QSqlDatabase getDB();
     QString getName();
     QString getPwd();
-    QSqlDatabase getDB();
     virtual ~LoginDiag();
     
 protected:

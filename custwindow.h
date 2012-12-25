@@ -61,6 +61,7 @@ public slots:
 
     void about();
 
+    void currentChanged();
 signals:
     void statusMessage(const QString &message);
 };
